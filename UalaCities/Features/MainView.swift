@@ -8,6 +8,15 @@
 import SwiftUI
 
 struct MainView: View {
+    
+    private let searchUseCase: SearchCitiesUseCase
+    private let favoritesUseCase: FavoritesUseCase
+    
+    init(searchUseCase: SearchCitiesUseCase, favoritesUseCase: FavoritesUseCase) {
+        self.searchUseCase = searchUseCase
+        self.favoritesUseCase = favoritesUseCase
+    }
+    
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -17,8 +26,4 @@ struct MainView: View {
         }
         .padding()
     }
-}
-
-#Preview {
-    MainView()
 }

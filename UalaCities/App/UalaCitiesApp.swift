@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct UalaCitiesApp: App {
+    private let container = DependencyContainer()
+    
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainView(
+                searchUseCase: container.searchCitiesUseCase,
+                favoritesUseCase: container.favoritesUseCase
+            )
         }
     }
 }
