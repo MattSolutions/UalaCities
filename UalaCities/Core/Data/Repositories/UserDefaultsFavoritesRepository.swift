@@ -1,5 +1,5 @@
 //
-//  DefaultFavoritesRepository.swift
+//  UserDefaultsFavoritesRepository.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -9,9 +9,9 @@ import Foundation
 import Observation
 
 /// Repository implementation that manages user's favorite cities
-/// using UserDefaults for persistence across app launches
+/// using UserDefaults for persistence
 @Observable
-class DefaultFavoritesRepository: FavoritesRepository {
+class UserDefaultsFavoritesRepository: FavoritesRepository {
     private let storage: UserDefaultsStore
     
     /// Observable collection of favorite city IDs

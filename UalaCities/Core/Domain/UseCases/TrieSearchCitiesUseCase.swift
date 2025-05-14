@@ -1,5 +1,5 @@
 //
-//  SearchCitiesUseCase.swift
+//  TrieSearchCitiesUseCase.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -16,7 +16,7 @@ protocol SearchCitiesUseCase {
     func loadAllCities() async throws -> [City]
 }
 
-class DefaultSearchCitiesUseCase: SearchCitiesUseCase {
+class TrieSearchCitiesUseCase: SearchCitiesUseCase {
     private let repository: CitiesRepository
     
     init(repository: CitiesRepository) {

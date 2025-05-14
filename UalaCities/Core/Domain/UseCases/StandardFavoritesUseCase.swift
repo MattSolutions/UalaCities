@@ -1,5 +1,5 @@
 //
-//  FavoritesUseCase.swift
+//  StandardFavoritesUseCase.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -24,9 +24,8 @@ protocol FavoritesUseCase {
     func filterFavorites(cities: [City]) -> [City]
 }
 
-/// Default implementation
 @Observable
-class DefaultFavoritesUseCase: FavoritesUseCase {
+class StandardFavoritesUseCase: FavoritesUseCase {
     private let repository: FavoritesRepository
     
     var favorites: Set<Int> {

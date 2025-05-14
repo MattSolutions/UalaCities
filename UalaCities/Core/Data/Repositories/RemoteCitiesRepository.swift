@@ -1,5 +1,5 @@
 //
-//  DefaultCitiesRepository.swift
+//  RemoteCitiesRepository.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -7,9 +7,8 @@
 
 import Foundation
 
-/// Repository implementation that fetches and caches city data from a remote source
-/// and provides search functionality with prefix matching
-class DefaultCitiesRepository: CitiesRepository {
+/// Repository implementation that fetches and caches city data from a remote source and provides search functionality
+class RemoteCitiesRepository: CitiesRepository {
     private let networkService: NetworkService
     
     private var citiesURL: URL {
@@ -34,7 +33,6 @@ class DefaultCitiesRepository: CitiesRepository {
             .sorted { $0.name.lowercased() < $1.name.lowercased() }
         
         self.cachedCities = cities
-
         self.buildSearchTrie(for: cities)
         
         return cities
@@ -53,7 +51,6 @@ class DefaultCitiesRepository: CitiesRepository {
     }
     
     private func buildSearchTrie(for cities: [City]) {
-
         let trie = PrefixTrie<City>()
         
         for city in cities {
@@ -61,40 +58,5 @@ class DefaultCitiesRepository: CitiesRepository {
         }
         
         self.prefixTrie = trie
-    }
-}
-
-/// Trie data structure for fast prefix searching
-class PrefixTrie<T> {
-    private class TrieNode {
-        var items: [T] = []
-        var children: [Character: TrieNode] = [:]
-    }
-    
-    private let root = TrieNode()
-    
-    func insert(_ item: T, withKey key: String) {
-        var current = root
-        
-        for char in key {
-            if current.children[char] == nil {
-                current.children[char] = TrieNode()
-            }
-            current = current.children[char]!
-            current.items.append(item)
-        }
-    }
-    
-    func search(prefix: String) -> [T] {
-        var current = root
-        
-        for char in prefix {
-            guard let next = current.children[char] else {
-                return []
-            }
-            current = next
-        }
-        
-        return current.items
     }
 }

@@ -1,5 +1,5 @@
 //
-//  NetworkService.swift
+//  URLNetworkService.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -22,8 +22,8 @@ protocol NetworkService {
     func fetchData<T: Decodable>(from url: URL) async throws -> T
 }
 
-/// Default implementation
-class DefaultNetworkService: NetworkService {
+/// Network service implementation
+class URLNetworkService: NetworkService {
     private let session: URLSession
     
     init(session: URLSession = .shared) {
