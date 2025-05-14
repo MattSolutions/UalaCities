@@ -7,7 +7,8 @@
 
 import Foundation
 
-/// Default implementation of CitiesRepository that fetches cities from a remote source
+/// Repository implementation that fetches and caches city data from a remote source
+/// and provides search functionality with prefix matching
 class DefaultCitiesRepository: CitiesRepository {
     private let networkService: NetworkService
     
@@ -16,6 +17,7 @@ class DefaultCitiesRepository: CitiesRepository {
     }
     
     private var cachedCities: [City]?
+    private var prefixTrie = PrefixTrie<City>()
     
     init(networkService: NetworkService) {
         self.networkService = networkService
@@ -32,16 +34,67 @@ class DefaultCitiesRepository: CitiesRepository {
             .sorted { $0.name.lowercased() < $1.name.lowercased() }
         
         self.cachedCities = cities
+
+        self.buildSearchTrie(for: cities)
         
         return cities
     }
     
     func searchCities(prefix: String) -> [City] {
-        guard let cities = cachedCities, !prefix.isEmpty else {
-            return cachedCities ?? []
+        guard let cities = cachedCities else {
+            return []
         }
         
-        let lowercasedPrefix = prefix.lowercased()
-        return cities.filter { $0.name.lowercased().hasPrefix(lowercasedPrefix) }
+        if prefix.isEmpty {
+            return cities
+        }
+        
+        return prefixTrie.search(prefix: prefix.lowercased())
+    }
+    
+    private func buildSearchTrie(for cities: [City]) {
+
+        let trie = PrefixTrie<City>()
+        
+        for city in cities {
+            trie.insert(city, withKey: city.name.lowercased())
+        }
+        
+        self.prefixTrie = trie
+    }
+}
+
+/// Trie data structure for fast prefix searching
+class PrefixTrie<T> {
+    private class TrieNode {
+        var items: [T] = []
+        var children: [Character: TrieNode] = [:]
+    }
+    
+    private let root = TrieNode()
+    
+    func insert(_ item: T, withKey key: String) {
+        var current = root
+        
+        for char in key {
+            if current.children[char] == nil {
+                current.children[char] = TrieNode()
+            }
+            current = current.children[char]!
+            current.items.append(item)
+        }
+    }
+    
+    func search(prefix: String) -> [T] {
+        var current = root
+        
+        for char in prefix {
+            guard let next = current.children[char] else {
+                return []
+            }
+            current = next
+        }
+        
+        return current.items
     }
 }
