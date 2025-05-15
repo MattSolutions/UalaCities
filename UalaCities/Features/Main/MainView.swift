@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  MainView.swift
 //  UalaCities
 //
 //  Created by MATIAS BATTITI on 14/05/2025.
@@ -7,16 +7,23 @@
 
 import SwiftUI
 
+// MARK: - Main View
+
 struct MainView: View {
+    // MARK: - Properties
+    
     @StateObject private var coordinator = CitiesCoordinator()
-    @State private var isLandscape = false
     private let searchUseCase: SearchCitiesUseCase
     private let favoritesUseCase: FavoritesUseCase
+    
+    // MARK: - Initialization
     
     init(searchUseCase: SearchCitiesUseCase, favoritesUseCase: FavoritesUseCase) {
         self.searchUseCase = searchUseCase
         self.favoritesUseCase = favoritesUseCase
     }
+    
+    // MARK: - Body
     
     var body: some View {
         GeometryReader { geometry in
@@ -38,7 +45,8 @@ struct MainView: View {
     }
 }
 
-// Layout components using EnvironmentObject
+// MARK: - Layout Components
+
 struct LandscapeLayout: View {
     @EnvironmentObject var coordinator: CitiesCoordinator
     let searchUseCase: SearchCitiesUseCase
@@ -52,14 +60,14 @@ struct LandscapeLayout: View {
             )
             .frame(maxWidth: .infinity)
             
-            MapView()
+            CityMapView()
                 .frame(maxWidth: .infinity)
         }
-        .sheet(item: Binding(
-            get: { coordinator.selectedCity },
-            set: { coordinator.selectedCity = $0 }
-        )) { city in
-            CityDetailView(city: city)
+        .sheet(item: $coordinator.selectedCity) { city in
+            CityDetailsView(
+                city: city,
+                favoritesUseCase: favoritesUseCase
+            )
         }
     }
 }
@@ -70,19 +78,20 @@ struct PortraitLayout: View {
     let favoritesUseCase: FavoritesUseCase
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $coordinator.navigationPath) {
             CitiesListView(
                 searchUseCase: searchUseCase,
                 favoritesUseCase: favoritesUseCase
             )
-            .navigationDestination(for: CitiesCoordinator.NavigationDestination.self) { destination in
+            .navigationDestination(for: CitiesCoordinator.Destination.self) { destination in
                 switch destination {
                 case .map:
-                    MapView()
+                    CityMapView()
                 case .details(let city):
-                    CityDetailView(city: city)
-                case .none:
-                    EmptyView()
+                    CityDetailsView(
+                        city: city,
+                        favoritesUseCase: favoritesUseCase
+                    )
                 }
             }
         }

@@ -6,24 +6,27 @@
 //
 
 import SwiftUI
-import Combine
 import MapKit
 
-/// Coordinates navigation between the cities list, details and map views.
 @MainActor
-class CitiesCoordinator: ObservableObject {
-
-    // MARK: - Navigation Destination
-
-    enum NavigationDestination: Equatable {
-        case none
+final class CitiesCoordinator: ObservableObject {
+    // MARK: - Navigation State
+    
+    @Published var navigationPath = NavigationPath()
+    @Published var selectedCity: City?
+    @Published var mapRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
+    
+    // MARK: - Destination Types
+    
+    enum Destination: Hashable {
         case map
         case details(City)
         
-        static func == (lhs: NavigationDestination, rhs: NavigationDestination) -> Bool {
+        static func == (lhs: Destination, rhs: Destination) -> Bool {
             switch (lhs, rhs) {
-            case (.none, .none):
-                return true
             case (.map, .map):
                 return true
             case let (.details(lhsCity), .details(rhsCity)):
@@ -32,61 +35,49 @@ class CitiesCoordinator: ObservableObject {
                 return false
             }
         }
+        
+        func hash(into hasher: inout Hasher) {
+            switch self {
+            case .map:
+                hasher.combine(0)
+            case .details(let city):
+                hasher.combine(1)
+                hasher.combine(city.id)
+            }
+        }
     }
     
-    // MARK: - Published Properties
-
-    @Published private(set) var navigationDestination: NavigationDestination = .none
-    @Published var mapRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
-        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-    )
-
     // MARK: - Navigation Actions
-
+    
+    /// Shows the city details screen.
+    /// - In portrait: Pushes details onto navigation stack
+    /// - In landscape: Shows city details in a sheet
     func showCityDetails(_ city: City) {
-        navigationDestination = .details(city)
+        selectedCity = city
+        navigationPath.append(Destination.details(city))
+    }
+
+    /// Shows the map focused on the specified city.
+    /// - In portrait: Pushes map view onto navigation stack
+    /// - In landscape: Updates the map region to show the city
+    func showCityOnMap(_ city: City) {
+        selectedCity = city
+        updateMapRegion(for: city)
+        navigationPath.append(Destination.map)
     }
     
-    func showCityOnMap(_ city: City) {
+    func backToList() {
+        if !navigationPath.isEmpty {
+            navigationPath.removeLast()
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func updateMapRegion(for city: City) {
         mapRegion = MKCoordinateRegion(
             center: city.coordinates.clLocation,
             span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         )
-        navigationDestination = .map
-    }
-    
-    func backToList() {
-        navigationDestination = .none
-    }
-
-    // MARK: - Computed Properties
-
-    var isShowingMap: Bool {
-        get {
-            if case .map = navigationDestination { return true }
-            return false
-        }
-        set {
-            if newValue {
-                navigationDestination = .map
-            } else if case .map = navigationDestination {
-                navigationDestination = .none
-            }
-        }
-    }
-    
-    var selectedCity: City? {
-        get {
-            if case .details(let city) = navigationDestination { return city }
-            return nil
-        }
-        set {
-            if let city = newValue {
-                navigationDestination = .details(city)
-            } else if case .details = navigationDestination {
-                navigationDestination = .none
-            }
-        }
     }
 }
