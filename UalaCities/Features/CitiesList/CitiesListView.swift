@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct CitiesListView: View {
+    
+    // MARK: - Properties
+    
     @EnvironmentObject private var coordinator: CitiesCoordinator
     @StateObject private var viewModel: CitiesListViewModel
     
@@ -18,6 +21,8 @@ struct CitiesListView: View {
         ))
     }
     
+    // MARK: - Body
+
     var body: some View {
         VStack(spacing: 0) {
             searchBar
@@ -25,6 +30,11 @@ struct CitiesListView: View {
             contentView
         }
         .navigationTitle("Cities")
+        .task {
+            if viewModel.state == .idle {
+                await viewModel.loadCities()
+            }
+        }
     }
     
     // MARK: - Content Building
@@ -65,18 +75,28 @@ struct CitiesListView: View {
         Toggle("Show Favorites Only", isOn: $viewModel.showFavoritesOnly)
             .padding(.horizontal)
             .padding(.bottom, 8)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.showFavoritesOnly)
     }
     
     private var citiesList: some View {
-        List {
-            ForEach(viewModel.filteredCities.prefix(viewModel.itemsToShow)) { city in
-                cityRow(for: city)
-                    .onAppear {
-                        viewModel.loadMoreItemsIfNeeded(for: city)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(viewModel.filteredCities.prefix(viewModel.itemsToShow)) { city in
+                    VStack(spacing: 0) {
+                        cityRow(for: city)
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .onAppear {
+                                viewModel.loadMoreItemsIfNeeded(for: city)
+                            }
+                        
+                        Divider()
+                            .padding(.leading)
                     }
+                }
             }
         }
-        .listStyle(.plain)
+        .animation(.easeOut(duration: 0.25), value: viewModel.filteredCities.count)
     }
     
     private func cityRow(for city: City) -> some View {
@@ -94,7 +114,7 @@ struct CitiesListView: View {
                 coordinator.showCityDetails(city)
             }
         )
-        .id(identity) 
+        .id(identity)
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.selectCity(city)

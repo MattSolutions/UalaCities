@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Main View
 
 struct MainView: View {
+    
     // MARK: - Properties
     
     @StateObject private var coordinator = CitiesCoordinator()
@@ -41,36 +42,15 @@ struct MainView: View {
                 }
             }
             .environmentObject(coordinator)
+            .onAppear()
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                coordinator.clearNavigationAndSelection()
+            }
         }
     }
 }
 
 // MARK: - Layout Components
-
-struct LandscapeLayout: View {
-    @EnvironmentObject var coordinator: CitiesCoordinator
-    let searchUseCase: SearchCitiesUseCase
-    let favoritesUseCase: FavoritesUseCase
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            CitiesListView(
-                searchUseCase: searchUseCase,
-                favoritesUseCase: favoritesUseCase
-            )
-            .frame(maxWidth: .infinity)
-            
-            CityMapView()
-                .frame(maxWidth: .infinity)
-        }
-        .sheet(item: $coordinator.selectedCity) { city in
-            CityDetailsView(
-                city: city,
-                favoritesUseCase: favoritesUseCase
-            )
-        }
-    }
-}
 
 struct PortraitLayout: View {
     @EnvironmentObject var coordinator: CitiesCoordinator
@@ -94,6 +74,32 @@ struct PortraitLayout: View {
                     )
                 }
             }
+        }
+    }
+}
+
+struct LandscapeLayout: View {
+    @EnvironmentObject var coordinator: CitiesCoordinator
+    let searchUseCase: SearchCitiesUseCase
+    let favoritesUseCase: FavoritesUseCase
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            CitiesListView(
+                searchUseCase: searchUseCase,
+                favoritesUseCase: favoritesUseCase
+            )
+            .frame(maxWidth: .infinity)
+            
+            CityMapView()
+                .navigationBarHidden(true)
+                .frame(maxWidth: .infinity)
+        }
+        .sheet(item: $coordinator.cityForDetails) { city in
+            CityDetailsView(
+                city: city,
+                favoritesUseCase: favoritesUseCase
+            )
         }
     }
 }

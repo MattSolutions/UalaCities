@@ -9,64 +9,63 @@ import SwiftUI
 import MapKit
 
 struct CityMapView: View {
+
+    // MARK: - Properties
+
     @EnvironmentObject private var coordinator: CitiesCoordinator
-    @StateObject private var viewModel: CityMapViewModel
-    @State private var position: MapCameraPosition
-    
-    init() {
-        _viewModel = StateObject(wrappedValue: CityMapViewModel())
-        _position = State(initialValue: .region(MKCoordinateRegion(
+    @State private var position: MapCameraPosition = .region(
+        MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
             span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-        )))
-    }
+        )
+    )
+    @Environment(\.dismiss) private var dismiss
+    
+    
+    // MARK: - Body
     
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Map(position: $position) {
-                ForEach(viewModel.mapPins) { city in
-                    Annotation(city.name, coordinate: city.coordinates.clLocation) {
-                        VStack(spacing: 0) {
-                            Image(systemName: "mappin.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.red)
-                                .background(
-                                    Circle()
-                                        .fill(Color.white)
-                                        .frame(width: 8, height: 8)
-                                )
-                        }
-                    }
+        Map(position: $position) {
+            if let city = coordinator.selectedCity {
+                Annotation(city.name, coordinate: city.coordinates.clLocation) {
+                    Image(systemName: "mappin.circle.fill")
+                        .font(.title)
+                        .foregroundColor(.red)
                 }
             }
-            .mapStyle(.standard)
-            .edgesIgnoringSafeArea(.all)
-            
-            Button {
-                coordinator.backToList()
-            } label: {
-                HStack {
+        }
+        .mapStyle(.standard)
+        .ignoresSafeArea(edges: [.horizontal, .bottom])
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    coordinator.clearNavigationAndSelection()
+                } label: {
                     Image(systemName: "chevron.left")
-                    Text("Back")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.blue)
+                        .contentShape(Rectangle())
+                        .padding(8)
                 }
-                .padding(8)
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(8)
-                .shadow(radius: 2)
             }
-            .padding()
+            
+            ToolbarItem(placement: .principal) {
+                EmptyView()
+            }
         }
         .onAppear {
-            viewModel.updateMapPin(coordinator.selectedCity)
             updateMapPosition()
-        }
-        .onChange(of: coordinator.selectedCity) {
-            viewModel.updateMapPin(coordinator.selectedCity)
         }
         .onReceive(coordinator.$mapRegion) { newRegion in
             position = .region(newRegion)
         }
+        .onReceive(coordinator.$selectedCity) { _ in
+            updateMapPosition()
+        }
     }
+    
+    // MARK: - Actions
     
     private func updateMapPosition() {
         position = .region(coordinator.mapRegion)

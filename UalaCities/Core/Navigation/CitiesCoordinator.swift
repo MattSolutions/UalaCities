@@ -14,6 +14,7 @@ final class CitiesCoordinator: ObservableObject {
     
     @Published var navigationPath = NavigationPath()
     @Published var selectedCity: City?
+    @Published var cityForDetails: City?
     @Published var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -53,10 +54,13 @@ final class CitiesCoordinator: ObservableObject {
     /// - In portrait: Pushes details onto navigation stack
     /// - In landscape: Shows city details in a sheet
     func showCityDetails(_ city: City) {
-        selectedCity = city
+        cityForDetails = city
+        if !navigationPath.isEmpty {
+            navigationPath.removeLast()
+        }
         navigationPath.append(Destination.details(city))
     }
-
+    
     /// Shows the map focused on the specified city.
     /// - In portrait: Pushes map view onto navigation stack
     /// - In landscape: Updates the map region to show the city
@@ -66,10 +70,16 @@ final class CitiesCoordinator: ObservableObject {
         navigationPath.append(Destination.map)
     }
     
-    func backToList() {
-        if !navigationPath.isEmpty {
-            navigationPath.removeLast()
-        }
+    func clearNavigationAndSelection() {
+        selectedCity = nil
+        cityForDetails = nil
+        
+        navigationPath = NavigationPath()
+        
+        mapRegion = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+            span: MKCoordinateSpan(latitudeDelta: 30, longitudeDelta: 30)
+        )
     }
     
     // MARK: - Helper Methods

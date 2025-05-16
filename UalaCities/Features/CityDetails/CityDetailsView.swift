@@ -10,11 +10,23 @@ import Combine
 import MapKit
 
 struct CityDetailsView: View {
+
+    // MARK: - Properties
+
     @EnvironmentObject private var coordinator: CitiesCoordinator
     @StateObject private var viewModel: CityDetailsViewModel
     
     let city: City
     
+    private var region: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: city.coordinates.clLocation,
+            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+        )
+    }
+    
+    // MARK: - Initialization
+
     init(city: City, favoritesUseCase: FavoritesUseCase) {
         self.city = city
         _viewModel = StateObject(wrappedValue: CityDetailsViewModel(
@@ -23,15 +35,32 @@ struct CityDetailsView: View {
         ))
     }
     
+    
+    // MARK: - Body
+
     var body: some View {
         content
             .navigationTitle(city.name)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        coordinator.clearNavigationAndSelection()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.blue)
+                            .contentShape(Rectangle())
+                            .padding(8)
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     favoriteButton
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isFavorite)
     }
     
     // MARK: - Content Builders
@@ -42,7 +71,6 @@ struct CityDetailsView: View {
             VStack(spacing: 20) {
                 mapPreview
                 cityInformationCard
-                Spacer()
             }
             .padding()
         }
@@ -50,11 +78,6 @@ struct CityDetailsView: View {
     
     @ViewBuilder
     private var mapPreview: some View {
-        let region = MKCoordinateRegion(
-            center: city.coordinates.clLocation,
-            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-        )
-        
         Map(position: .constant(.region(region))) {
             Annotation(city.name, coordinate: city.coordinates.clLocation) {
                 Image(systemName: "mappin.circle.fill")
@@ -92,7 +115,8 @@ struct CityDetailsView: View {
         [
             ("Name", city.name),
             ("Country", city.country),
-            ("Coordinates", "Lat: \(String(format: "%.6f", city.coordinates.latitude)), Lon: \(String(format: "%.6f", city.coordinates.longitude))")        ]
+            ("Coordinates", "Lat: \(String(format: "%.6f", city.coordinates.latitude)), Lon: \(String(format: "%.6f", city.coordinates.longitude))")
+        ]
     }
     
     private func cityInformationRow(label: String, value: String) -> some View {
@@ -102,7 +126,7 @@ struct CityDetailsView: View {
                 .frame(width: 100, alignment: .leading)
             
             Text(value)
-                .foregroundColor(label == "Favorite" && viewModel.isFavorite ? .yellow : .primary)
+                .foregroundColor(.primary)
             
             Spacer()
         }
@@ -110,12 +134,12 @@ struct CityDetailsView: View {
     
     private var favoriteButton: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                viewModel.toggleFavorite()
-            }
+            viewModel.toggleFavorite()
         } label: {
             Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
                 .foregroundColor(viewModel.isFavorite ? .yellow : .gray)
+                .scaleEffect(viewModel.isFavorite ? 1.1 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.isFavorite)
         }
     }
 }
