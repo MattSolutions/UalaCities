@@ -6,27 +6,30 @@
 //
 
 import Foundation
-import Observation
+import Combine
 
 /// Use case for managing favorite cities
 protocol FavoritesUseCase {
-    /// The current set of favorite city IDs
     var favorites: Set<Int> { get }
+    var favoritesChanged: AnyPublisher<Void, Never> { get }
     
-    /// Determines if a city is currently a favorite
     func isFavorite(cityId: Int) -> Bool
-    
-    /// Changes the favorite status of a city
     @discardableResult
     func toggleFavorite(cityId: Int) -> Bool
-    
-    /// Returns only the favorite cities from a provided collection
     func filterFavorites(cities: [City]) -> [City]
 }
 
-@Observable
 class StandardFavoritesUseCase: FavoritesUseCase {
     private let repository: FavoritesRepository
+    private var cancellables = Set<AnyCancellable>() 
+    
+    private let favoritesChangedSubject = PassthroughSubject<Void, Never>()
+    
+    var favoritesChanged: AnyPublisher<Void, Never> {
+        favoritesChangedSubject
+            .receive(on: RunLoop.main)
+            .eraseToAnyPublisher()
+    }
     
     var favorites: Set<Int> {
         repository.favorites
@@ -34,6 +37,12 @@ class StandardFavoritesUseCase: FavoritesUseCase {
     
     init(repository: FavoritesRepository) {
         self.repository = repository
+        
+        repository.favoritesChanged
+            .sink { [weak self] in
+                self?.favoritesChangedSubject.send()
+            }
+            .store(in: &cancellables)
     }
     
     func isFavorite(cityId: Int) -> Bool {
@@ -42,10 +51,15 @@ class StandardFavoritesUseCase: FavoritesUseCase {
     
     @discardableResult
     func toggleFavorite(cityId: Int) -> Bool {
-        repository.toggleFavorite(cityId: cityId)
+        let result = repository.toggleFavorite(cityId: cityId)
+        
+        favoritesChangedSubject.send()
+        
+        return result
     }
     
     func filterFavorites(cities: [City]) -> [City] {
-        cities.filter { isFavorite(cityId: $0.id) }
+        let currentFavorites = favorites
+        return cities.filter { currentFavorites.contains($0.id) }
     }
 }

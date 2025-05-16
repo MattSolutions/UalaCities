@@ -6,31 +6,31 @@
 //
 
 import Foundation
-import SwiftUI
+import Combine
 
+@MainActor
 final class CityDetailsViewModel: ObservableObject {
-    // MARK: - Published Properties
-    
-    @Published var isFavorite: Bool = false
-    
-    // MARK: - Dependencies
-    
+    @Published var isFavorite: Bool
     private let city: City
     private let favoritesUseCase: FavoritesUseCase
-    
-    // MARK: - Initialization
-    
+    private var cancellables = Set<AnyCancellable>()
+
     init(city: City, favoritesUseCase: FavoritesUseCase) {
         self.city = city
         self.favoritesUseCase = favoritesUseCase
         self.isFavorite = favoritesUseCase.isFavorite(cityId: city.id)
+        
+        favoritesUseCase.favoritesChanged
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                self.isFavorite = self.favoritesUseCase.isFavorite(cityId: self.city.id)
+            }
+            .store(in: &cancellables)
+
     }
     
-    // MARK: - Public Methods
-    
-    @MainActor
     func toggleFavorite() {
-        favoritesUseCase.toggleFavorite(cityId: city.id)
-        isFavorite = favoritesUseCase.isFavorite(cityId: city.id)
+        _ = favoritesUseCase.toggleFavorite(cityId: city.id)
     }
 }

@@ -33,6 +33,16 @@ final class CitiesListViewModel: ObservableObject {
     @Published private(set) var filteredCities: [City] = []
     @Published private(set) var selectedCity: City?
     
+    struct CityIdentity: Hashable {
+        let id: Int
+        let isFavorite: Bool
+        
+        init(city: City, isFavorite: Bool) {
+            self.id = city.id
+            self.isFavorite = isFavorite
+        }
+    }
+    
     // MARK: - Pagination Properties
     
     @Published private(set) var itemsToShow: Int = 100
@@ -50,7 +60,7 @@ final class CitiesListViewModel: ObservableObject {
         self.searchUseCase = searchUseCase
         self.favoritesUseCase = favoritesUseCase
         
-        setupBindings()
+        setupPublishers()
         
         Task {
             await loadCities()
@@ -58,11 +68,12 @@ final class CitiesListViewModel: ObservableObject {
     }
     
     // MARK: - Setup
-    
-    private func setupBindings() {
+
+    private func setupPublishers() {
         $searchText
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .removeDuplicates()
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.filterCities()
             }
@@ -70,7 +81,15 @@ final class CitiesListViewModel: ObservableObject {
         
         $showFavoritesOnly
             .removeDuplicates()
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
+                self?.filterCities()
+            }
+            .store(in: &cancellables)
+        
+        favoritesUseCase.favoritesChanged
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
                 self?.filterCities()
             }
             .store(in: &cancellables)
@@ -94,15 +113,9 @@ final class CitiesListViewModel: ObservableObject {
     
     // MARK: - Filtering
     
-    private func filterCities() {
-        if searchText.isEmpty && !showFavoritesOnly {
-            filteredCities = cities
-
-            itemsToShow = min(100, cities.count)
-            return
-        }
-        
+    func filterCities() {
         var filtered = cities
+        
         if !searchText.isEmpty {
             filtered = searchUseCase.execute(prefix: searchText)
         }
@@ -132,7 +145,11 @@ final class CitiesListViewModel: ObservableObject {
     
     func toggleFavorite(for city: City) {
         favoritesUseCase.toggleFavorite(cityId: city.id)
-        filterCities()
+    }
+
+    
+    func identityFor(_ city: City) -> CityIdentity {
+        CityIdentity(city: city, isFavorite: isFavorite(city))
     }
     
     func isFavorite(_ city: City) -> Bool {

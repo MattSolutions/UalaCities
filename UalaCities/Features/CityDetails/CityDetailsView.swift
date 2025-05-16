@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 import MapKit
 
 struct CityDetailsView: View {
@@ -91,9 +92,7 @@ struct CityDetailsView: View {
         [
             ("Name", city.name),
             ("Country", city.country),
-            ("Coordinates", "Lat: \(String(format: "%.6f", city.coordinates.latitude)), Lon: \(String(format: "%.6f", city.coordinates.longitude))"),
-            ("Favorite", viewModel.isFavorite ? "Yes" : "No")
-        ]
+            ("Coordinates", "Lat: \(String(format: "%.6f", city.coordinates.latitude)), Lon: \(String(format: "%.6f", city.coordinates.longitude))")        ]
     }
     
     private func cityInformationRow(label: String, value: String) -> some View {
@@ -111,7 +110,9 @@ struct CityDetailsView: View {
     
     private var favoriteButton: some View {
         Button {
-            viewModel.toggleFavorite()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                viewModel.toggleFavorite()
+            }
         } label: {
             Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
                 .foregroundColor(viewModel.isFavorite ? .yellow : .gray)
@@ -136,6 +137,12 @@ struct CityDetailsView: View {
 }
 
 private class PreviewFavoritesUseCase: FavoritesUseCase {
+    private let favoritesSubject = PassthroughSubject<Void, Never>()
+    
+    var favoritesChanged: AnyPublisher<Void, Never> {
+        favoritesSubject.eraseToAnyPublisher()
+    }
+    
     var favorites: Set<Int> = [1]
     
     func isFavorite(cityId: Int) -> Bool {
@@ -143,13 +150,18 @@ private class PreviewFavoritesUseCase: FavoritesUseCase {
     }
     
     func toggleFavorite(cityId: Int) -> Bool {
+        let wasAdded: Bool
         if favorites.contains(cityId) {
             favorites.remove(cityId)
-            return false
+            wasAdded = false
         } else {
             favorites.insert(cityId)
-            return true
+            wasAdded = true
         }
+        
+        favoritesSubject.send()
+        
+        return wasAdded
     }
     
     func filterFavorites(cities: [City]) -> [City] {

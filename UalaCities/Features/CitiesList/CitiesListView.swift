@@ -80,9 +80,11 @@ struct CitiesListView: View {
     }
     
     private func cityRow(for city: City) -> some View {
-        CityRow(
+        let identity = viewModel.identityFor(city)
+        
+        return CityRow(
             city: city,
-            isFavorite: viewModel.isFavorite(city),
+            isFavorite: identity.isFavorite,
             isSelected: viewModel.selectedCity?.id == city.id,
             onToggleFavorite: {
                 viewModel.toggleFavorite(for: city)
@@ -92,6 +94,7 @@ struct CitiesListView: View {
                 coordinator.showCityDetails(city)
             }
         )
+        .id(identity) 
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.selectCity(city)

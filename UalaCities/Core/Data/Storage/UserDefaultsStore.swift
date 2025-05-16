@@ -6,39 +6,50 @@
 //
 
 import Foundation
-import Observation
+import Combine
 
 /// Service for persisting data using UserDefaults
-@Observable
 class UserDefaultsStore {
+    // MARK: - Properties
+    
     private let defaults: UserDefaults
     private let favoritesKey = "UalaCities.FavoriteCities"
     
-    private var _favorites: Set<Int> = []
+    private lazy var favoritesSubject = CurrentValueSubject<Set<Int>, Never>(loadFavoritesSet())
+    
+    var favoritesPublisher: AnyPublisher<Set<Int>, Never> {
+        favoritesSubject.eraseToAnyPublisher()
+    }
     
     var favorites: Set<Int> {
-        get { _favorites }
+        get { favoritesSubject.value }
         set {
-            _favorites = newValue
-            saveFavorites()
+            guard newValue != favoritesSubject.value else { return }
+            
+            saveFavorites(newValue)
+            favoritesSubject.send(newValue)
         }
     }
+    
+    // MARK: - Initialization
     
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        loadFavorites()
     }
     
-    private func loadFavorites() {
-        if let data = defaults.data(forKey: favoritesKey),
-           let favorites = try? JSONDecoder().decode(Set<Int>.self, from: data) {
-            _favorites = favorites
+    // MARK: - Private Methods
+    
+    private func loadFavoritesSet() -> Set<Int> {
+        guard let data = defaults.data(forKey: favoritesKey),
+              let favorites = try? JSONDecoder().decode(Set<Int>.self, from: data) else {
+            return []
         }
+        return favorites
     }
     
-    private func saveFavorites() {
-        if let data = try? JSONEncoder().encode(_favorites) {
-            defaults.set(data, forKey: favoritesKey)
-        }
+    private func saveFavorites(_ favorites: Set<Int>) {
+        guard let data = try? JSONEncoder().encode(favorites) else { return }
+        defaults.set(data, forKey: favoritesKey)
+        defaults.synchronize()
     }
 }

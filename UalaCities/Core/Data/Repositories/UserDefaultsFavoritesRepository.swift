@@ -6,23 +6,35 @@
 //
 
 import Foundation
-import Observation
+import Combine
 
 /// Repository implementation that manages user's favorite cities
 /// using UserDefaults for persistence
-@Observable
 class UserDefaultsFavoritesRepository: FavoritesRepository {
+    // MARK: - Properties
+    
     private let storage: UserDefaultsStore
     
-    /// Observable collection of favorite city IDs
-    var favorites: Set<Int> {
-        get { storage.favorites }
-        set { storage.favorites = newValue }
+    // MARK: - Protocol Conformance
+    
+    var favoritesChanged: AnyPublisher<Void, Never> {
+        return storage.favoritesPublisher
+            .dropFirst()
+            .map { _ in () }
+            .share()
+            .eraseToAnyPublisher()
     }
     
+    var favorites: Set<Int> {
+        storage.favorites
+    }
+    
+    // MARK: - Initialization
     init(storage: UserDefaultsStore) {
         self.storage = storage
     }
+    
+    // MARK: - Public Methods
     
     func isFavorite(cityId: Int) -> Bool {
         favorites.contains(cityId)
@@ -30,12 +42,17 @@ class UserDefaultsFavoritesRepository: FavoritesRepository {
     
     @discardableResult
     func toggleFavorite(cityId: Int) -> Bool {
-
         var updatedFavorites = favorites
-        let wasAdded = updatedFavorites.update(with: cityId) == nil
+        let isCurrentlyFavorite = updatedFavorites.contains(cityId)
+        
+        if isCurrentlyFavorite {
+            updatedFavorites.remove(cityId)
+        } else {
+            updatedFavorites.insert(cityId)
+        }
         
         storage.favorites = updatedFavorites
         
-        return wasAdded
+        return !isCurrentlyFavorite
     }
 }

@@ -26,7 +26,7 @@ struct CityRow: View {
             buttonControls
         }
         .padding(.vertical, 4)
-        .background(isSelected ? Color.blue.opacity(0.2) : Color.clear)
+        .background(isSelected ? Color.gray.opacity(0.1) : Color.clear)
     }
     
     // MARK: - UI Components
@@ -69,7 +69,6 @@ struct CityRow: View {
         .buttonStyle(.plain)
     }
 }
-
 // MARK: - Preview Provider
 #Preview(traits: .sizeThatFitsLayout) {
     CityRow(

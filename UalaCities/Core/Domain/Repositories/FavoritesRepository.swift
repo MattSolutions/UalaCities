@@ -6,17 +6,14 @@
 //
 
 import Foundation
-import Observation
+import Combine
 
 /// Repository interface for accessing favorite cities
 protocol FavoritesRepository {
-    /// Observable collection of favorite city IDs
     var favorites: Set<Int> { get }
+    var favoritesChanged: AnyPublisher<Void, Never> { get }
     
-    /// Checks if a city is marked as favorite
     func isFavorite(cityId: Int) -> Bool
-    
-    /// Toggles the favorite status of a city
     @discardableResult
     func toggleFavorite(cityId: Int) -> Bool
 }
