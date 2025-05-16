@@ -13,10 +13,7 @@ struct UalaCitiesApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainView(
-                searchUseCase: container.searchCitiesUseCase,
-                favoritesUseCase: container.favoritesUseCase
-            )
+            SplashScreenView(container: container)
         }
     }
 }
