@@ -8,40 +8,81 @@
 import SwiftUI
 
 struct SearchBar: View {
+    // MARK: - Properties
+    
     @Binding var searchText: String
-    var placeholder: String = "Search"
+    let placeholder: String = "Search for a city..."
     var onClear: (() -> Void)?
     
+    // MARK: - Body
+    
     var body: some View {
+        searchBarContainer
+    }
+    
+    // MARK: - UI Components
+    
+    private var searchBarContainer: some View {
         HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.secondary)
+            searchIcon
+            customTextField
+            clearButton
+        }
+        .padding(10)
+        .background(Color.ualaOverlay)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.ualaBorder, lineWidth: 1)
+        )
+        .cornerRadius(10)
+    }
+    
+    private var searchIcon: some View {
+        Image(systemName: "magnifyingglass")
+            .foregroundColor(.white)
+    }
+    
+    private var customTextField: some View {
+        ZStack(alignment: .leading) {
+            if searchText.isEmpty {
+                Text(placeholder)
+                    .foregroundColor(.ualaSecondaryText)
+                    .fontWeight(.regular)
+            }
             
-            TextField(placeholder, text: $searchText)
+            TextField("", text: $searchText)
                 .disableAutocorrection(true)
                 .textInputAutocapitalization(.never)
-            
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                    onClear?()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
+                .foregroundColor(.white)
+                .fontWeight(.semibold)
+                .tint(.white)
+                .background(Color.clear)
+        }
+    }
+    
+    @ViewBuilder
+    private var clearButton: some View {
+        if !searchText.isEmpty {
+            Button {
+                searchText = ""
+                onClear?()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.white)
             }
         }
-        .padding(8)
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
     }
 }
 
 // MARK: - Preview Provider
 #Preview(traits: .sizeThatFitsLayout) {
-    VStack {
-        SearchBar(searchText: .constant(""))
-        SearchBar(searchText: .constant("New York"))
+    ZStack {
+        Color.ualaBrand.ignoresSafeArea()
+        
+        VStack {
+            SearchBar(searchText: .constant(""))
+            SearchBar(searchText: .constant("New York"))
+        }
+        .padding()
     }
-    .padding()
 }

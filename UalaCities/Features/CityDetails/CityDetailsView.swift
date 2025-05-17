@@ -35,38 +35,51 @@ struct CityDetailsView: View {
         ))
     }
     
-    
     // MARK: - Body
 
     var body: some View {
-        content
-            .navigationTitle(city.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        coordinator.clearNavigationAndSelection()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.blue)
-                            .contentShape(Rectangle())
-                            .padding(8)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    favoriteButton
-                }
+        ZStack {
+            backgroundView
+            
+            contentView
+        }
+        .navigationTitle(city.name)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                backButton
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isFavorite)
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                favoriteButton
+            }
+        }
+        .toolbarBackground(Color.ualaBrand, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .foregroundStyle(.white)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isFavorite)
     }
     
-    // MARK: - Content Builders
+    // MARK: - Background Components
     
-    @ViewBuilder
-    private var content: some View {
+    private var backgroundView: some View {
+        Color.ualaBrand
+            .overlay(
+                Image("cityscape")
+                    .resizable()
+                    .scaledToFill()
+                    .colorMultiply(Color.ualaBrand)
+                    .opacity(0.9)
+            )
+            .overlay(Color.ualaBrandGradient)
+            .ignoresSafeArea()
+    }
+    
+    // MARK: - Content Components
+    
+    private var contentView: some View {
         ScrollView {
             VStack(spacing: 20) {
                 mapPreview
@@ -76,7 +89,18 @@ struct CityDetailsView: View {
         }
     }
     
-    @ViewBuilder
+    private var backButton: some View {
+        Button {
+            coordinator.clearNavigationAndSelection()
+        } label: {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .contentShape(Rectangle())
+                .padding(8)
+        }
+    }
+    
     private var mapPreview: some View {
         Map(position: .constant(.region(region))) {
             Annotation(city.name, coordinate: city.coordinates.clLocation) {
@@ -85,29 +109,31 @@ struct CityDetailsView: View {
                     .foregroundColor(.red)
             }
         }
-        .frame(height: 200)
+        .frame(height: 300)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
         )
         .disabled(true)
     }
     
-    @ViewBuilder
     private var cityInformationCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("City Information")
                 .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
             
             Divider()
+                .background(Color.white.opacity(0.3))
             
             ForEach(cityInformationRows, id: \.label) { row in
                 cityInformationRow(label: row.label, value: row.value)
             }
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
+        .background(Color.ualaBorder)
         .cornerRadius(12)
     }
     
@@ -122,11 +148,12 @@ struct CityDetailsView: View {
     private func cityInformationRow(label: String, value: String) -> some View {
         HStack {
             Text("\(label):")
-                .foregroundColor(.secondary)
-                .frame(width: 100, alignment: .leading)
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 110, alignment: .leading)
             
             Text(value)
-                .foregroundColor(.primary)
+                .foregroundColor(.white)
+                .fontWeight(.medium)
             
             Spacer()
         }
@@ -137,7 +164,7 @@ struct CityDetailsView: View {
             viewModel.toggleFavorite()
         } label: {
             Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
-                .foregroundColor(viewModel.isFavorite ? .yellow : .gray)
+                .foregroundColor(viewModel.isFavorite ? Color.yellow : .white.opacity(0.5))
                 .scaleEffect(viewModel.isFavorite ? 1.1 : 1.0)
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.isFavorite)
         }
@@ -150,9 +177,9 @@ struct CityDetailsView: View {
     NavigationStack {
         CityDetailsView(
             city: City(
-                id: 1, 
-                name: "New York", 
-                country: "US", 
+                id: 1,
+                name: "New York",
+                country: "US",
                 coordinates: Coordinate(latitude: 40.7128, longitude: -74.0060)
             ),
             favoritesUseCase: PreviewFavoritesUseCase()

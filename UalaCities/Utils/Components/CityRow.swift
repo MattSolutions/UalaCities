@@ -25,8 +25,9 @@ struct CityRow: View {
             Spacer()
             buttonControls
         }
-        .padding(.vertical, 4)
-        .background(isSelected ? Color.gray.opacity(0.1) : Color.clear)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .cornerRadius(10)
     }
     
     // MARK: - UI Components
@@ -35,10 +36,11 @@ struct CityRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("\(city.name), \(city.country)")
                 .font(.headline)
+                .foregroundColor(.white)
             
             Text("Lat: \(String(format: "%.6f", city.coordinates.latitude)), Lon: \(String(format: "%.6f", city.coordinates.longitude))")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.7))
         }
     }
     
@@ -54,7 +56,8 @@ struct CityRow: View {
             onToggleFavorite()
         } label: {
             Image(systemName: isFavorite ? "star.fill" : "star")
-                .foregroundColor(isFavorite ? .yellow : .gray)
+                .foregroundColor(isFavorite ? .yellow : .white.opacity(0.5))
+                .font(.system(size: 22))
         }
         .buttonStyle(.plain)
     }
@@ -64,24 +67,30 @@ struct CityRow: View {
             onShowDetails()
         } label: {
             Image(systemName: "info.circle")
-                .foregroundColor(.blue)
+                .foregroundColor(.white)
+                .font(.system(size: 22))
         }
         .buttonStyle(.plain)
     }
 }
+
 // MARK: - Preview Provider
 #Preview(traits: .sizeThatFitsLayout) {
-    CityRow(
-        city: City(
-            id: 1,
-            name: "New York",
-            country: "US",
-            coordinates: Coordinate(latitude: 40.7128, longitude: -74.0060)
-        ),
-        isFavorite: true,
-        isSelected: false,
-        onToggleFavorite: {},
-        onShowDetails: {}
-    )
-    .padding()
+    ZStack {
+        Color.ualaBrand.ignoresSafeArea()
+        
+        CityRow(
+            city: City(
+                id: 1,
+                name: "New York",
+                country: "US",
+                coordinates: Coordinate(latitude: 40.7128, longitude: -74.0060)
+            ),
+            isFavorite: true,
+            isSelected: false,
+            onToggleFavorite: {},
+            onShowDetails: {}
+        )
+        .padding()
+    }
 }

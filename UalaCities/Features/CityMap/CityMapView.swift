@@ -21,53 +21,105 @@ struct CityMapView: View {
     )
     @Environment(\.dismiss) private var dismiss
     
-    
     // MARK: - Body
     
     var body: some View {
+        mapContent
+            .modifier(NavigationBarModifier(backAction: {
+                coordinator.clearNavigationAndSelection()
+            }))
+            .modifier(MapEventsModifier(
+                updatePositionAction: updateMapPosition,
+                mapRegionPublisher: coordinator.$mapRegion,
+                selectedCityPublisher: coordinator.$selectedCity
+            ))
+    }
+    
+    // MARK: - Content Components
+    
+    private var mapContent: some View {
+        mapView
+            .background(Color.ualaBrand)
+            .ignoresSafeArea(edges: [.horizontal, .bottom])
+    }
+    
+    private var mapView: some View {
         Map(position: $position) {
             if let city = coordinator.selectedCity {
                 Annotation(city.name, coordinate: city.coordinates.clLocation) {
-                    Image(systemName: "mappin.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.red)
+                    mapPin
                 }
             }
         }
         .mapStyle(.standard)
-        .ignoresSafeArea(edges: [.horizontal, .bottom])
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    coordinator.clearNavigationAndSelection()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.blue)
-                        .contentShape(Rectangle())
-                        .padding(8)
-                }
-            }
-            
-            ToolbarItem(placement: .principal) {
-                EmptyView()
-            }
-        }
-        .onAppear {
-            updateMapPosition()
-        }
-        .onReceive(coordinator.$mapRegion) { newRegion in
-            position = .region(newRegion)
-        }
-        .onReceive(coordinator.$selectedCity) { _ in
-            updateMapPosition()
-        }
+    }
+    
+    private var mapPin: some View {
+        Image(systemName: "mappin.circle.fill")
+            .font(.title)
+            .foregroundColor(Color.ualaAccent)
     }
     
     // MARK: - Actions
     
     private func updateMapPosition() {
         position = .region(coordinator.mapRegion)
+    }
+}
+
+// MARK: - View Modifiers
+
+struct NavigationBarModifier: ViewModifier {
+    let backAction: () -> Void
+    
+    func body(content: Content) -> some View {
+        content
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: backAction) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .contentShape(Rectangle())
+                            .padding(8)
+                    }
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    EmptyView()
+                }
+            }
+            .toolbarBackground(Color.ualaBrand, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .foregroundStyle(.white)
+    }
+}
+
+struct MapEventsModifier: ViewModifier {
+    let updatePositionAction: () -> Void
+    let mapRegionPublisher: Published<MKCoordinateRegion>.Publisher
+    let selectedCityPublisher: Published<City?>.Publisher
+    
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                updatePositionAction()
+            }
+            .onReceive(mapRegionPublisher) { _ in
+                updatePositionAction()
+            }
+            .onReceive(selectedCityPublisher) { _ in
+                updatePositionAction()
+            }
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    NavigationStack {
+        CityMapView()
+            .environmentObject(CitiesCoordinator())
     }
 }
