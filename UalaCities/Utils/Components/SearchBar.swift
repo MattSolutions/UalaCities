@@ -11,6 +11,7 @@ struct SearchBar: View {
     // MARK: - Properties
     
     @Binding var searchText: String
+    @FocusState private var isTextFieldFocused: Bool
     let placeholder: String = "Search for a city..."
     var onClear: (() -> Void)?
     
@@ -35,6 +36,7 @@ struct SearchBar: View {
                 .stroke(Color.ualaBorder, lineWidth: 1)
         )
         .cornerRadius(10)
+        .onTapGesture { isTextFieldFocused = true }
     }
     
     private var searchIcon: some View {
@@ -47,6 +49,7 @@ struct SearchBar: View {
             .foregroundColor(.ualaSecondaryText)
             .fontWeight(.regular)
         )
+        .focused($isTextFieldFocused)
         .disableAutocorrection(true)
         .textInputAutocapitalization(.never)
         .foregroundColor(.white)
