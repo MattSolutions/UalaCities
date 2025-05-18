@@ -30,7 +30,7 @@ class RemoteCitiesRepository: CitiesRepository {
         let cityDTOs: [CityDTO] = try await networkService.fetchData(from: citiesURL)
         
         let cities = cityDTOs.map { $0.toDomain() }
-            .sorted { $0.name.lowercased() < $1.name.lowercased() }
+            .sorted(by: City.sortAlphabetically)
         
         self.cachedCities = cities
         self.buildSearchTrie(for: cities)

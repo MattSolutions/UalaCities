@@ -27,6 +27,22 @@ struct City: Identifiable, Equatable, Hashable {
     }
 }
 
+// MARK: - Sorting
+
+extension City {
+    /// Sorts cities with alphabetical names first, followed by cities with special characters
+    static func sortAlphabetically(lhs: City, rhs: City) -> Bool {
+        let lhsPriority = lhs.name.first?.isLetter == true ? 0 : 1
+        let rhsPriority = rhs.name.first?.isLetter == true ? 0 : 1
+        
+        if lhsPriority != rhsPriority {
+            return lhsPriority < rhsPriority
+        }
+        
+        return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+    }
+}
+
 struct CityIdentity: Hashable {
     let id: Int
     let isFavorite: Bool
