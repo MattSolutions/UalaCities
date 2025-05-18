@@ -57,7 +57,7 @@ struct CityMapView: View {
     private var mapPin: some View {
         Image(systemName: "mappin.circle.fill")
             .font(.title)
-            .foregroundColor(Color.ualaAccent)
+            .foregroundColor(.red)
     }
     
     // MARK: - Actions

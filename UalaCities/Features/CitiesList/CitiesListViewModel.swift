@@ -10,6 +10,7 @@ import Combine
 
 @MainActor
 final class CitiesListViewModel: ObservableObject {
+    
     // MARK: - State Management
     
     enum ViewState: Equatable {
@@ -61,9 +62,14 @@ final class CitiesListViewModel: ObservableObject {
         self.favoritesUseCase = favoritesUseCase
         
         setupPublishers()
-        
         Task {
-            await loadCities()
+            do {
+                cities = try await searchUseCase.loadAllCities()
+                state = .loaded
+                filterCities()
+            } catch {
+                state = .error(error.localizedDescription)
+            }
         }
     }
     
@@ -98,11 +104,21 @@ final class CitiesListViewModel: ObservableObject {
     // MARK: - Data Loading
     
     func loadCities() async {
-        guard state != .loading else { return }
-        
-        state = .loading
+        guard state != .loading else {
+            return
+        }
         
         do {
+            let cachedCitiesCheck = try await searchUseCase.loadAllCities()
+            
+            if !cachedCitiesCheck.isEmpty {
+                cities = cachedCitiesCheck
+                state = .loaded
+                filterCities()
+                return
+            }
+            
+            state = .loading
             cities = try await searchUseCase.loadAllCities()
             state = .loaded
             filterCities()

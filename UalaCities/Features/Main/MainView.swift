@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Main View
-
 struct MainView: View {
     
     // MARK: - Properties
@@ -42,7 +40,6 @@ struct MainView: View {
                 }
             }
             .environmentObject(coordinator)
-            .onAppear()
             .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                 coordinator.clearNavigationAndSelection()
             }

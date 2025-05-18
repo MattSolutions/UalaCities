@@ -29,11 +29,6 @@ struct CitiesListView: View {
             backgroundView
             contentStack
         }
-        .task {
-            if viewModel.state == .idle {
-                await viewModel.loadCities()
-            }
-        }
     }
     
     // MARK: - Background Components
