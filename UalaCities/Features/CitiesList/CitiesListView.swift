@@ -61,13 +61,20 @@ struct CitiesListView: View {
     }
 
     private var headerTitle: some View {
-        Text("Cities")
-            .font(.largeTitle)
-            .fontWeight(.bold)
-            .foregroundColor(.ualaPrimaryText)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
+        HStack(spacing: 8) {
+            Image("ualaLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 38)
+            
+            Text("Cities")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.ualaPrimaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
     }
     
     // MARK: - Content Building
@@ -105,7 +112,7 @@ struct CitiesListView: View {
     
     private var favoritesToggle: some View {
         Toggle("Show Favorites Only", isOn: $viewModel.showFavoritesOnly)
-            .toggleStyle(SwitchToggleStyle(tint: Color.ualaAccent))
+            .toggleStyle(SwitchToggleStyle(tint: Color.ualaPink))
             .foregroundColor(.ualaPrimaryText)
             .padding(.horizontal)
             .padding(.bottom, 8)
