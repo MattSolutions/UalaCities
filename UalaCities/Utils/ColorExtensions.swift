@@ -16,6 +16,8 @@ extension Color {
     /// Secondary accent color
     static let ualaAccent = Color(red: 0.2, green: 0.5, blue: 0.95)
     
+    static let ualaPink = Color(red: 1.0, green: 0.176, blue: 0.333)
+    
     // MARK: - UI Colors
     
     /// Primary text color (white)
