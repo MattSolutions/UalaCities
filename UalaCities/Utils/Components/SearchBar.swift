@@ -43,34 +43,28 @@ struct SearchBar: View {
     }
     
     private var customTextField: some View {
-        ZStack(alignment: .leading) {
-            if searchText.isEmpty {
-                Text(placeholder)
-                    .foregroundColor(.ualaSecondaryText)
-                    .fontWeight(.regular)
-            }
-            
-            TextField("", text: $searchText)
-                .disableAutocorrection(true)
-                .textInputAutocapitalization(.never)
-                .foregroundColor(.white)
-                .fontWeight(.semibold)
-                .tint(.white)
-                .background(Color.clear)
-        }
+        TextField("", text: $searchText, prompt: Text(placeholder)
+            .foregroundColor(.ualaSecondaryText)
+            .fontWeight(.regular)
+        )
+        .disableAutocorrection(true)
+        .textInputAutocapitalization(.never)
+        .foregroundColor(.white)
+        .fontWeight(.semibold)
+        .tint(.white)
+        .background(Color.clear)
     }
     
-    @ViewBuilder
     private var clearButton: some View {
-        if !searchText.isEmpty {
-            Button {
-                searchText = ""
-                onClear?()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.white)
-            }
+        Button {
+            searchText = ""
+            onClear?()
+        } label: {
+            Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.white)
         }
+        .opacity(searchText.isEmpty ? 0 : 1)
+        .animation(.easeInOut(duration: 0.2), value: searchText.isEmpty)
     }
 }
 
