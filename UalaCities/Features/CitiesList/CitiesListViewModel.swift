@@ -149,7 +149,6 @@ final class CitiesListViewModel: ObservableObject {
         favoritesUseCase.toggleFavorite(cityId: city.id)
     }
 
-    
     func identityFor(_ city: City) -> CityIdentity {
         CityIdentity(city: city, isFavorite: isFavorite(city))
     }

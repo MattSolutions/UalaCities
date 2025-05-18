@@ -29,17 +29,13 @@ struct SplashScreenView: View {
             )
         } else {
             GeometryReader { geo in
-                ZStack {
-                    Color(red: 0.35, green: 0.2, blue: 0.8)
-                        .ignoresSafeArea()
-                    
-                    Image("SplashBackground")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.height + 100)
-                        .ignoresSafeArea()
-                }
+                Image("SplashBackground")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .ignoresSafeArea()
             }
+            .edgesIgnoringSafeArea(.all)
             .transition(.opacity)
             .onAppear {
                 Task {
