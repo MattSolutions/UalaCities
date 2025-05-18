@@ -18,11 +18,6 @@ final class CitiesListViewModel: ObservableObject {
         case loading
         case loaded
         case error(String)
-        
-        var isLoading: Bool {
-            if case .loading = self { return true }
-            return false
-        }
     }
     
     // MARK: - Published Properties
@@ -33,16 +28,6 @@ final class CitiesListViewModel: ObservableObject {
     @Published private(set) var cities: [City] = []
     @Published private(set) var filteredCities: [City] = []
     @Published private(set) var selectedCity: City?
-    
-    struct CityIdentity: Hashable {
-        let id: Int
-        let isFavorite: Bool
-        
-        init(city: City, isFavorite: Bool) {
-            self.id = city.id
-            self.isFavorite = isFavorite
-        }
-    }
     
     // MARK: - Pagination Properties
     
@@ -108,17 +93,9 @@ final class CitiesListViewModel: ObservableObject {
             return
         }
         
+        state = .loading
+        
         do {
-            let cachedCitiesCheck = try await searchUseCase.loadAllCities()
-            
-            if !cachedCitiesCheck.isEmpty {
-                cities = cachedCitiesCheck
-                state = .loaded
-                filterCities()
-                return
-            }
-            
-            state = .loading
             cities = try await searchUseCase.loadAllCities()
             state = .loaded
             filterCities()
@@ -130,6 +107,13 @@ final class CitiesListViewModel: ObservableObject {
     // MARK: - Filtering
     
     func filterCities() {
+
+        if searchText.isEmpty && !showFavoritesOnly {
+            filteredCities = cities
+            itemsToShow = min(100, cities.count)
+            return
+        }
+        
         var filtered = cities
         
         if !searchText.isEmpty {
@@ -151,8 +135,10 @@ final class CitiesListViewModel: ObservableObject {
             return
         }
         
-        let thresholdIndex = itemsToShow - 10
-        if index >= thresholdIndex && itemsToShow < filteredCities.count {
+        let isApproachingEnd = index >= itemsToShow - 10
+        let hasMoreItemsToShow = itemsToShow < filteredCities.count
+        
+        if isApproachingEnd && hasMoreItemsToShow {
             itemsToShow = min(itemsToShow + batchSize, filteredCities.count)
         }
     }

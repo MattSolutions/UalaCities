@@ -27,6 +27,16 @@ struct City: Identifiable, Equatable, Hashable {
     }
 }
 
+struct CityIdentity: Hashable {
+    let id: Int
+    let isFavorite: Bool
+    
+    init(city: City, isFavorite: Bool) {
+        self.id = city.id
+        self.isFavorite = isFavorite
+    }
+}
+
 struct Coordinate: Equatable, Hashable {
     let latitude: Double
     let longitude: Double
