@@ -42,13 +42,6 @@ This approach is much faster than filtering the entire list of 200,000 cities ea
 * **Sorting Logic**: Sort the cities prioritizing alphabetical characters before special characters
 * **Pagination & Background Processing**: For responsive UI with the large dataset
 
-## Getting Started
-
-### Requirements
-- iOS 18.1+
-- Xcode 16.1+
-- Swift 5.0+
-
 ### Installation
 1. Clone the repository
    ```bash
