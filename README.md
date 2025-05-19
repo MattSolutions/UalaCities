@@ -1,6 +1,6 @@
 # UalaCities
 
-A Swift iOS application developed as part of the Ualá mobile challenge. The app fetches a list of approximately 200,000 cities from a remote JSON source, allows users to search through them using prefix matching, view them on a map, and save favorites for quick access.
+A Swift iOS application developed as part of the Ualá mobile challenge. The app fetches a list of approximately 200,000 cities, allows users to search through them using prefix matching, view them on a map, and save favorites for quick access.
 
 ## Architecture
 
